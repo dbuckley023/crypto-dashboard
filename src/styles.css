@@ -1,0 +1,880 @@
+:root {
+  --bg: #0a0a0c;
+  --card: #111114;
+  --card2: #141418;
+  --border: #24242b;
+  --text: #f3f4f6;
+  --muted: #a1a1aa;
+  --pos: #34d399;
+  --neg: #fb7185;
+  --page-pad: clamp(16px, 2vw, 28px);
+  --container-max: 1600px;
+
+  --shadow: 0 0 0 1px rgba(255,255,255,.06), 0 18px 70px rgba(0,0,0,.55);
+  --shadow-soft: 0 0 0 1px rgba(255,255,255,.05), 0 10px 36px rgba(0,0,0,.38);
+
+  --btc: #f7931a;
+  --eth: #8b5cf6;
+  --sol: #22d3ee;
+  --usdc: #3b82f6;
+
+  --glow-a: rgba(139,92,246,.25);
+  --glow-b: rgba(34,211,238,.20);
+  --glow-c: rgba(247,147,26,.18);
+}
+
+* {
+  box-sizing: border-box
+}
+
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--text);
+  font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial;
+  overflow-x: hidden;
+}
+
+/* ---- Glass Luxe background: animated aurora ---- */
+body::before {
+  content: "";
+  position: fixed;
+  inset: -20%;
+  z-index: -2;
+  background:
+    radial-gradient(40% 35% at 20% 10%, rgba(139, 92, 246, .20), transparent 60%),
+    radial-gradient(35% 30% at 82% 18%, rgba(34, 211, 238, .16), transparent 60%),
+    radial-gradient(45% 40% at 55% 86%, rgba(247, 147, 26, .12), transparent 60%),
+    radial-gradient(35% 30% at 12% 82%, rgba(52, 211, 153, .10), transparent 62%);
+  filter: blur(26px);
+  animation: aurora 18s ease-in-out infinite alternate;
+  opacity: .95;
+}
+
+@keyframes aurora {
+  from { transform: translate3d(-2%, -1%, 0) scale(1.02); }
+  to   { transform: translate3d( 2%,  1%, 0) scale(1.05); }
+}
+
+/* ---- Glass Luxe: subtle noise overlay ---- */
+.app::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 999;
+  opacity: .06;
+  mix-blend-mode: overlay;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.35'/%3E%3C/svg%3E");
+}
+
+.app {
+  min-height: 100vh
+}
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: rgba(10, 10, 18, .55);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-bottom: 1px solid var(--border)
+}
+
+.topbarInner {
+  width: min(var(--container-max), calc(100vw - (var(--page-pad) * 2)));
+  margin: 0 auto;
+  padding: 14px var(--page-pad);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px
+}
+
+.grid {
+  width: min(var(--container-max), calc(100vw - (var(--page-pad) * 2)));
+  margin: 0 auto;
+  padding: var(--page-pad);
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px
+}
+
+@media(min-width:1100px) {
+  .grid {
+    /* Left and right are equal width. Middle is still widest, but not by a ton. */
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1.2fr) minmax(0, 1fr);
+  }
+}
+
+.col {
+  min-width: 0;
+}
+
+.h1, .h2, .walletValue, .statValue {
+  font-variant-numeric: tabular-nums;
+}
+
+.h1 {
+  font-size: 28px;
+  font-weight: 700;
+  letter-spacing: -0.02em
+}
+
+.h2 {
+  font-size: 20px;
+  font-weight: 700
+}
+
+.muted {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.card {
+  position: relative;
+  border: 1px solid transparent;
+  border-radius: 16px;
+  overflow: hidden;
+
+  /* Glass surface + gradient border */
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, .07), rgba(255, 255, 255, .03)) padding-box,
+    linear-gradient(90deg,
+      rgba(139, 92, 246, .34),
+      rgba(34, 211, 238, .22),
+      rgba(247, 147, 26, .16)
+    ) border-box;
+
+  backdrop-filter: blur(16px) saturate(150%);
+  box-shadow: var(--shadow);
+  transform: translateZ(0);
+  transition: transform .18s ease, box-shadow .18s ease, border-color .18s ease;
+}
+
+.cardHeader {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 14px 14px 0
+}
+
+.cardTitle {
+  font-size: 13px;
+  color: var(--muted)
+}
+
+.cardBody {
+  padding: 14px
+}
+
+.walletGrid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 10px
+}
+
+@media(min-width:700px) {
+  .walletGrid {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media(min-width:1100px) {
+  .walletGrid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.walletCard {
+  width: 100%;
+  text-align: left;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 12px;
+  cursor: pointer;
+  transition: transform .08s ease, border-color .08s ease;
+  color: var(--text);
+  position: relative;
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+.walletCard:hover {
+  transform: translateY(-1px);
+  border-color: #3f3f46
+}
+
+.walletCard.selected {
+  border-color: rgba(255,255,255,.22);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+
+.walletCard.selected::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(139,92,246,.12), transparent 40%, rgba(34,211,238,.10));
+  opacity: .85;
+  mask-image: linear-gradient(180deg, transparent 0%, black 22%, black 78%, transparent 100%);
+}
+
+.walletName {
+  font-weight: 650;
+  color: var(--text);
+}
+
+.walletValue {
+  font-size: 16px;
+  font-weight: 750;
+  margin-top: 4px;
+  color: var(--text);
+}
+
+.walletValue.pos {
+  color: var(--pos);
+}
+
+.walletValue.neg {
+  color: var(--neg);
+}
+
+.walletHoldings {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 8px
+}
+
+.pill {
+  display: inline-flex;
+  gap: 8px;
+  align-items: center;
+  font-size: 12px;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid var(--border)
+}
+
+.pillSymbol {
+  color: var(--text);
+  font-weight: 750;
+}
+
+.pillNum.pos {
+  color: var(--pos);
+  font-weight: 750;
+}
+
+.pillNum.neg {
+  color: var(--neg);
+  font-weight: 750;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+}
+
+.table {
+  width: max-content;
+  min-width: 100%;
+  border-collapse: separate;
+  border-spacing: 0 0;
+}
+
+th,
+td {
+  padding: 10px 8px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  font-size: 13px;
+  white-space: nowrap;
+  font-variant-numeric: tabular-nums;
+}
+
+th {
+  color: var(--muted);
+  font-weight: 650;
+  white-space: nowrap
+}
+
+.right {
+  text-align: right
+}
+
+.rowHover {
+  cursor: pointer
+}
+
+.rowHover:hover {
+  background: rgba(255,255,255,0.03);
+  box-shadow: inset 3px 0 0 rgba(139,92,246,.35);
+}
+
+.assetCell {
+  display: flex;
+  align-items: center;
+  gap: 8px
+}
+
+.assetSymbol {
+  font-weight: 750;
+  letter-spacing: 0.02em
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 3px 8px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  font-size: 12px
+}
+
+.pos {
+  color: var(--pos)
+}
+
+.neg {
+  color: var(--neg)
+}
+
+.statsGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px
+}
+
+.stat {
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 10px
+}
+
+.statLabel {
+  color: var(--muted);
+  font-size: 12px
+}
+
+.statValue {
+  font-weight: 800;
+  margin-top: 4px
+}
+
+.statSub {
+  color: var(--muted);
+  font-size: 12px;
+  margin-top: 2px
+}
+
+.seg {
+  display: flex;
+  background: rgba(255, 255, 255, 0.02);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 4px
+}
+
+.segBtn {
+  border: 0;
+  background: transparent;
+  color: var(--muted);
+  font-size: 12px;
+  padding: 6px 10px;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease;
+}
+
+.segBtn:hover {
+  transform: translateY(-1px);
+}
+
+.segBtn:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+.segBtn.active {
+  background: rgba(255, 255, 255, 0.06);
+  color: var(--text);
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+
+.chartHeader {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 10px;
+  margin-bottom: 10px
+}
+
+/* Chart should fill the middle column width */
+.chartWrap {
+  border: 1px solid rgba(255, 255, 255, .10);
+  border-radius: 14px;
+  padding: 0;
+  background: rgba(255, 255, 255, 0.03);
+  backdrop-filter: blur(14px) saturate(150%);
+  overflow: hidden;
+}
+
+.chartLine {
+  color: #e5e7eb;
+  width: 100%;
+}
+
+.chartScroll {
+  width: 100%;
+  overflow-x: auto;
+  overflow-y: hidden;
+  -webkit-overflow-scrolling: touch;
+  cursor: grab;
+  user-select: none;
+}
+
+.chartScroll:active { cursor: grabbing; }
+
+.chartCanvas {
+  display: block;
+}
+
+/* Tooltip polish */
+.chartTooltip {
+  border-radius: 12px;
+}
+
+/* Tooltip should sit above the noise overlay */
+.chartTooltip {
+  position: relative;
+  z-index: 1000;
+}
+
+.axisText {
+  fill: var(--muted);
+  font-size: 11px;
+}
+
+.chartMeta {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 8px
+}
+
+.allocList {
+  display: flex;
+  flex-direction: column;
+  gap: 10px
+}
+
+.allocRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px
+}
+
+.allocLeft {
+  display: flex;
+  flex-direction: column;
+  gap: 2px
+}
+
+.allocRight {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  justify-content: flex-end
+}
+
+.bar {
+  width: 120px;
+  max-width: 40vw;
+  height: 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  overflow: hidden
+}
+
+.barFill {
+  height: 100%;
+  background: rgba(255, 255, 255, 0.22)
+}
+
+.filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end
+}
+
+.input,
+.select {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  color: var(--text);
+  padding: 8px 10px;
+  font-size: 13px;
+  outline: none;
+  backdrop-filter: blur(10px) saturate(140%);
+}
+
+.input {
+  min-width: 190px
+}
+
+.click {
+  cursor: pointer;
+  user-select: none
+}
+
+.pager {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
+  gap: 10px
+}
+
+.btn {
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02);
+  color: var(--text);
+  padding: 8px 12px;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease;
+}
+
+.btn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+.btn:disabled {
+  opacity: .5;
+  cursor: not-allowed
+}
+
+.liveWrap {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  background: rgba(255, 255, 255, 0.02)
+}
+
+.dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #52525b
+}
+
+.dotLive {
+  background: var(--pos);
+  box-shadow: 0 0 0 6px rgba(52, 211, 153, 0.12)
+}
+
+.dotConnecting {
+  background: #fbbf24;
+  box-shadow: 0 0 0 6px rgba(251, 191, 36, 0.12)
+}
+
+.liveText {
+  font-size: 12px;
+  color: var(--muted)
+}
+
+.list {
+  margin: 0;
+  padding-left: 18px;
+  color: var(--muted);
+  font-size: 13px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px
+}
+
+.footer {
+  width: min(var(--container-max), calc(100vw - (var(--page-pad) * 2)));
+  margin: 0 auto;
+  padding: 18px var(--page-pad)
+}
+
+@media (min-width: 1700px) {
+  :root {
+    --container-max: 1900px;
+  }
+}
+
+/* -------- Theme variants (toggle via body[data-theme]) -------- */
+body[data-theme="classic"] {
+  --bg: #0a0a0c;
+  --card: #111114;
+  --card2: #141418;
+  --border: #24242b;
+  --text: #f3f4f6;
+  --muted: #a1a1aa;
+}
+
+body[data-theme="neon"] {
+  --bg: #070712;
+  --card: #0d0d1a;
+  --card2: #101028;
+  --border: rgba(160,160,255,.18);
+  --text: #eef2ff;
+  --muted: rgba(220,220,255,.68);
+  --glow-a: rgba(99,102,241,.34);
+  --glow-b: rgba(34,211,238,.24);
+  --glow-c: rgba(247,147,26,.18);
+}
+
+/* -------- Premium depth + spotlight glow -------- */
+.card::before {
+  content: "";
+  position: absolute;
+  inset: -1px;
+  border-radius: 16px;
+  background:
+    radial-gradient(700px circle at var(--mx, 50%) var(--my, 0%), var(--glow-a), transparent 45%),
+    radial-gradient(620px circle at calc(var(--mx, 50%) + 10%) calc(var(--my, 0%) + 10%), var(--glow-b), transparent 50%),
+    radial-gradient(560px circle at calc(var(--mx, 50%) - 12%) calc(var(--my, 0%) + 8%), var(--glow-c), transparent 52%);
+  opacity: 0;
+  transition: opacity .22s ease;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-soft);
+  transform: translateY(-2px);
+}
+
+/* -------- Buttons microinteractions -------- */
+.btn, .segBtn, .walletCard {
+  transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease, background .14s ease;
+}
+
+.btn:hover, .segBtn:hover {
+  transform: translateY(-1px);
+}
+
+.btn:active, .segBtn:active {
+  transform: translateY(0px) scale(0.98);
+}
+
+.segBtn.active {
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+
+/* -------- Wallet card selected state -------- */
+.walletCard.selected {
+  border-color: rgba(255,255,255,.22);
+  background: linear-gradient(180deg, rgba(255,255,255,.06), rgba(255,255,255,.02));
+  box-shadow: 0 0 0 1px rgba(255,255,255,.08) inset;
+}
+
+.walletCard.selected::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 14px;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(139,92,246,.12), transparent 40%, rgba(34,211,238,.10));
+  opacity: .85;
+  mask-image: linear-gradient(180deg, transparent 0%, black 22%, black 78%, transparent 100%);
+}
+
+.walletCard { position: relative; }
+
+/* -------- Number update flash (pos/neg) -------- */
+.flashPos { animation: flashPos .38s ease; }
+.flashNeg { animation: flashNeg .38s ease; }
+@keyframes flashPos { from { background: rgba(52,211,153,.18); } to { background: transparent; } }
+@keyframes flashNeg { from { background: rgba(251,113,133,.18); } to { background: transparent; } }
+
+/* -------- Skeleton shimmer (for loading transitions) -------- */
+.skeleton {
+  background: linear-gradient(90deg, rgba(255,255,255,.04), rgba(255,255,255,.10), rgba(255,255,255,.04));
+  background-size: 200% 100%;
+  animation: shimmer 1.1s linear infinite;
+  border-radius: 12px;
+}
+
+@keyframes shimmer {
+  from { background-position: 200% 0; }
+  to { background-position: -200% 0; }
+}
+
+/* -------- Table row accent on hover -------- */
+.rowHover:hover {
+  background: rgba(255,255,255,0.03);
+  box-shadow: inset 3px 0 0 rgba(139,92,246,.35);
+}
+
+/* -------- Chart polish -------- */
+.chartScroll {
+  cursor: grab;
+  user-select: none;
+}
+
+.chartScroll:active { cursor: grabbing; }
+
+.chartCanvas { display:block; }
+
+/* Tooltip polish */
+.chartTooltip {
+  border-radius: 12px;
+}
+
+/* ---- Press ripple (CSS-only, subtle) ---- */
+.btn, .segBtn, .walletCard {
+  position: relative;
+  overflow: hidden;
+}
+
+.btn::after, .segBtn::after, .walletCard::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: radial-gradient(240px circle at 50% 50%, rgba(255,255,255,.12), transparent 55%);
+  transform: scale(0.95);
+  transition: opacity .22s ease;
+}
+
+.btn:active::after, .segBtn:active::after, .walletCard:active::after {
+  opacity: 1;
+}
+
+/* =========================
+   FINAL POLISH (chart + tooltip)
+   ========================= */
+
+/* Make the tooltip feel like real glass */
+.chartTooltip {
+  background: rgba(12, 12, 18, 0.62) !important;
+  border: 1px solid rgba(255, 255, 255, 0.10) !important;
+  box-shadow: 0 12px 44px rgba(0, 0, 0, 0.55) !important;
+  backdrop-filter: blur(14px) saturate(160%) !important;
+  padding: 10px 12px !important;
+}
+
+/* Axis text: slightly softer */
+.axisText {
+  fill: rgba(240, 240, 255, 0.55);
+  letter-spacing: 0.01em;
+}
+
+/* Subtle smoothing for SVG lines */
+.chartCanvas svg {
+  shape-rendering: geometricPrecision;
+}
+
+/* Edge fades (PricePanel adds these as absolute overlays; this just adds a little polish) */
+.chartFadeLeft,
+.chartFadeRight {
+  filter: blur(0.2px);
+  opacity: 0.95;
+}
+
+/* Scroll containers: smooth momentum + nicer selection */
+.chartScroll {
+  scroll-behavior: smooth;
+}
+
+/* Make gridlines feel softer when the chart line is bright */
+.chartLine {
+  opacity: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .chartScroll {
+    scroll-behavior: auto;
+  }
+}
+
+
+/* =========================
+   WOW LAYER (premium fintech polish)
+   ========================= */
+
+/* Subtle animated gradient border sweep (keeps existing hover transform/shadow) */
+.card {
+  background-size: 100% 100%, 220% 220%;
+  background-position: 0 0, 0% 50%;
+}
+
+@keyframes borderShift {
+  0%   { background-position: 0 0,   0% 50%; }
+  50%  { background-position: 0 0, 100% 50%; }
+  100% { background-position: 0 0,   0% 50%; }
+}
+
+.card:hover {
+  animation: borderShift 2.8s ease-in-out infinite;
+}
+
+/* Selected wallet: diagonal sheen sweep (uses ::before to avoid ::after ripple conflict) */
+@keyframes sheen {
+  0%   { transform: translateX(-55%) rotate(2deg); opacity: 0; }
+  20%  { opacity: .9; }
+  100% { transform: translateX(55%) rotate(2deg); opacity: 0; }
+}
+
+.walletCard.selected::before {
+  content: "";
+  position: absolute;
+  inset: -60% -80%;
+  pointer-events: none;
+  background: linear-gradient(120deg,
+    transparent 30%,
+    rgba(255,255,255,.12) 45%,
+    transparent 60%
+  );
+  transform: translateX(-35%) rotate(2deg);
+  opacity: .75;
+  animation: sheen 1.15s ease-out 1;
+}
+
+/* Asset icon chip (BTC/ETH/SOL/USDC) */
+.assetIcon {
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: .04em;
+  color: rgba(255,255,255,.92);
+  border: 1px solid rgba(255,255,255,.14);
+  background:
+    radial-gradient(60% 60% at 30% 30%, rgba(255,255,255,.20), transparent 60%),
+    linear-gradient(135deg,
+      color-mix(in srgb, var(--icon, rgba(139,92,246,.9)) 82%, rgba(0,0,0,.25)),
+      rgba(255,255,255,.06)
+    );
+  box-shadow: 0 10px 22px rgba(0,0,0,.35);
+  flex: 0 0 auto;
+}
