@@ -1,12 +1,16 @@
 import React from "react";
 
-export default function LiveDot({ status }) {
-  const cls =
-    status === "connected" ? "dot dotLive" : status === "connecting" ? "dot dotConnecting" : "dot";
+export default function LiveDot({ dataMode }) {
+  const isLiveMode = dataMode === "live";
+
+  const cls = isLiveMode
+    ? "dot dotLive"
+    : "dot dotOffline";
+
   return (
-    <div className="liveWrap" aria-label={`Connection status ${status}`}>
+    <div className="liveWrap" aria-label="Live indicator">
       <span className={cls} />
-      <span className="liveText">{status}</span>
+      <span className="liveText">live</span>
     </div>
   );
 }

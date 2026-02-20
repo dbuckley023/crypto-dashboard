@@ -65,7 +65,8 @@ function useFlashClass(value) {
   return cls;
 }
 
-const CG_BASE = "https://api.coingecko.com/api/v3";
+// Use Vite proxy in dev to avoid CoinGecko CORS
+const CG_BASE = import.meta.env.DEV ? "/cg/api/v3" : "https://api.coingecko.com/api/v3";
 const SYMBOL_TO_ID = {
   BTC: "bitcoin",
   ETH: "ethereum",
@@ -110,7 +111,7 @@ async function fetchMarketChartUSD(symbol, days) {
 
 export default function App() {
   const [range, setRange] = useState("1D");
-  const [dataMode, setDataMode] = useState(() => localStorage.getItem("dataMode") || "mock");
+  const [dataMode, setDataMode] = useState(() => localStorage.getItem("dataMode") || "live");
   useEffect(() => {
     localStorage.setItem("dataMode", dataMode);
   }, [dataMode]);
@@ -245,7 +246,7 @@ export default function App() {
                 Mock
               </button>
               <button
-                className={`segBtn ${dataMode === "live" ? "active" : ""}`}
+                className={`segBtn segBtnLive ${dataMode === "live" ? "active" : ""}`}
                 onClick={() => setDataMode("live")}
               >
                 Live
@@ -265,7 +266,7 @@ export default function App() {
                 Neon
               </button>
             </div>
-            <LiveDot status={status} />
+            <LiveDot status={status} dataMode={dataMode} />
           </div>
         </div>
       </header>
