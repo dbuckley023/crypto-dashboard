@@ -11,9 +11,9 @@ import TradeHistoryTable from "./components/TradeHistoryTable";
 
 import { MOCK_TRADES, MOCK_WALLETS, INITIAL_PRICES } from "./data/mockData";
 import { useMockLivePrices } from "./hooks/useMockLivePrices";
+import { MOCK_SERIES } from "./lib/mockSeries";
 import { computePortfolio } from "./lib/metrics";
 import { fmtUsd } from "./lib/utils";
-import { MOCK_SERIES } from "./lib/mockSeries";
 
 function useTweenNumber(target, duration = 620) {
   const [val, setVal] = useState(() => (Number.isFinite(target) ? target : 0));
@@ -65,8 +65,55 @@ function useFlashClass(value) {
   return cls;
 }
 
+const CG_BASE = "https://api.coingecko.com/api/v3";
+const SYMBOL_TO_ID = {
+  BTC: "bitcoin",
+  ETH: "ethereum",
+  SOL: "solana",
+  USDC: "usd-coin",
+};
+
+function rangeToDays(range) {
+  if (range === "1D") return 1;
+  if (range === "1W") return 7;
+  if (range === "1M") return 30;
+  return 365; // 1Y
+}
+
+async function fetchLivePricesUSD(symbols = ["BTC", "ETH", "SOL", "USDC"]) {
+  const ids = symbols.map((s) => SYMBOL_TO_ID[s]).join(",");
+  const url = `${CG_BASE}/simple/price?ids=${ids}&vs_currencies=usd&include_24hr_change=true`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`CoinGecko simple/price failed: ${res.status}`);
+  const json = await res.json();
+
+  const out = {};
+  for (const sym of symbols) {
+    const id = SYMBOL_TO_ID[sym];
+    out[sym] = {
+      price: json?.[id]?.usd ?? 0,
+      change24h: json?.[id]?.usd_24h_change ?? 0,
+    };
+  }
+  return out;
+}
+
+async function fetchMarketChartUSD(symbol, days) {
+  const id = SYMBOL_TO_ID[symbol];
+  const url = `${CG_BASE}/coins/${id}/market_chart?vs_currency=usd&days=${days}`;
+  const res = await fetch(url);
+  if (!res.ok) throw new Error(`CoinGecko market_chart failed: ${res.status}`);
+  const json = await res.json();
+  // normalize into [{t, v}] shape
+  return (json.prices || []).map(([t, p]) => ({ t, v: Number(p) }));
+}
+
 export default function App() {
   const [range, setRange] = useState("1D");
+  const [dataMode, setDataMode] = useState(() => localStorage.getItem("dataMode") || "mock");
+  useEffect(() => {
+    localStorage.setItem("dataMode", dataMode);
+  }, [dataMode]);
   const [theme, setTheme] = useState(() => localStorage.getItem("theme") || "classic");
 
   useEffect(() => {
@@ -77,7 +124,55 @@ export default function App() {
   // chartTarget can be { type: "asset", symbol: "BTC" } OR { type: "wallet", walletId: "w1" }
   const [chartTarget, setChartTarget] = useState({ type: "asset", symbol: "BTC" });
 
-  const { prices, status, lastTickAt, prevPrices } = useMockLivePrices(INITIAL_PRICES);
+  // Mock engine (always available)
+  const mock = useMockLivePrices(INITIAL_PRICES);
+
+  // Live engine (CoinGecko)
+  const [livePrices, setLivePrices] = useState(INITIAL_PRICES);
+  const [livePrevPrices, setLivePrevPrices] = useState(INITIAL_PRICES);
+  const [liveStatus, setLiveStatus] = useState("offline");
+  const [liveLastTickAt, setLiveLastTickAt] = useState(Date.now());
+
+  useEffect(() => {
+    if (dataMode !== "live") return;
+    let alive = true;
+
+    const tick = async () => {
+      try {
+        setLiveStatus("connecting");
+        const live = await fetchLivePricesUSD(["BTC", "ETH", "SOL", "USDC"]);
+        if (!alive) return;
+
+        setLivePrevPrices((prev) => ({ ...prev, ...livePrices }));
+        setLivePrices({
+          BTC: live.BTC.price,
+          ETH: live.ETH.price,
+          SOL: live.SOL.price,
+          USDC: live.USDC.price,
+        });
+        setLiveLastTickAt(Date.now());
+        setLiveStatus("live");
+      } catch (e) {
+        console.error(e);
+        if (!alive) return;
+        setLiveStatus("offline");
+      }
+    };
+
+    tick();
+    const id = setInterval(tick, 20000);
+    return () => {
+      alive = false;
+      clearInterval(id);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [dataMode]);
+
+  const prices = dataMode === "live" ? livePrices : mock.prices;
+  const prevPrices = dataMode === "live" ? livePrevPrices : mock.prevPrices;
+  const status = dataMode === "live" ? liveStatus : mock.status;
+  const lastTickAt = dataMode === "live" ? liveLastTickAt : mock.lastTickAt;
+
   const portfolio = useMemo(() => computePortfolio(MOCK_WALLETS, prices), [prices]);
   const animTotal = useTweenNumber(portfolio.totalValueUsd, 620);
   const totalFlash = useFlashClass(portfolio.totalValueUsd);
@@ -97,6 +192,40 @@ export default function App() {
     return sorted[0]?.symbol || null;
   }, [selectedWallet, prices]);
 
+  const [liveSeries, setLiveSeries] = useState(MOCK_SERIES);
+
+  useEffect(() => {
+    if (dataMode !== "live") return;
+    let alive = true;
+
+    const days = rangeToDays(range);
+    const syms = ["BTC", "ETH", "SOL", "USDC"];
+
+    const load = async () => {
+      try {
+        const results = await Promise.all(
+          syms.map(async (s) => [s, await fetchMarketChartUSD(s, days)])
+        );
+        if (!alive) return;
+        const bySymbol = Object.fromEntries(results);
+
+        setLiveSeries((prev) => ({
+          ...prev,
+          [range]: bySymbol,
+        }));
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
+    load();
+    return () => {
+      alive = false;
+    };
+  }, [dataMode, range]);
+
+  const seriesForPanel = dataMode === "live" ? liveSeries : MOCK_SERIES;
+
   return (
     <div className="app">
       <header className="topbar">
@@ -108,6 +237,20 @@ export default function App() {
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div className="seg" aria-label="Data mode">
+              <button
+                className={`segBtn ${dataMode === "mock" ? "active" : ""}`}
+                onClick={() => setDataMode("mock")}
+              >
+                Mock
+              </button>
+              <button
+                className={`segBtn ${dataMode === "live" ? "active" : ""}`}
+                onClick={() => setDataMode("live")}
+              >
+                Live
+              </button>
+            </div>
             <div className="seg" aria-label="Theme">
               <button
                 className={`segBtn ${theme === "classic" ? "active" : ""}`}
@@ -151,7 +294,7 @@ export default function App() {
             wallet={selectedWallet}
             walletAccentSymbol={dominantWalletSymbol}
             prices={prices}
-            series={MOCK_SERIES}
+            series={seriesForPanel}
             range={range}
             setRange={setRange}
           />
