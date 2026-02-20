@@ -171,7 +171,40 @@ export default function App() {
         </section>
       </main>
 
-      <footer className="footer muted">Mock data only — no real trading or financial advice.</footer>
+      <footer className="footer footerBar">
+        <div className="footerLeft">
+          <span className="muted">Built by</span>
+          <span className="footerName">David Buckley</span>
+          <span className="muted">•</span>
+          <span className="muted">React</span>
+          <span className="muted">•</span>
+          <span className="muted">Vite</span>
+          <span className="muted">•</span>
+          <span className="muted">Live mock price engine</span>
+          <span className="muted">•</span>
+          <span className="muted">Mock data only — no real trading or financial advice.</span>
+        </div>
+
+        <div className="footerLinks">
+          <a
+            className="footerLink"
+            href="https://crypto-dashboard-three-eta.vercel.app/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Live Demo
+          </a>
+          <span className="muted">•</span>
+          <a
+            className="footerLink"
+            href="https://github.com/dbuckley023/crypto-dashboard"
+            target="_blank"
+            rel="noreferrer"
+          >
+            Source Code
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
