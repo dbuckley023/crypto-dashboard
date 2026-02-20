@@ -1,47 +1,3 @@
-import React from "react";
-import Header from "./components/Header";
-import Portfolio from "./components/Portfolio";
-import Chart from "./components/Chart";
-import TradeHistory from "./components/TradeHistory";
-import Performance from "./components/Performance";
-
-function App() {
-  return (
-    <div className="app">
-      <Header />
-      <main>
-        <Portfolio />
-        <Chart />
-        <TradeHistory />
-        <Performance />
-      </main>
-      <footer className="footer footerBar">
-        <div className="footerLeft">
-          <span className="muted">Built by</span> <span className="footerName">David Buckley</span>
-          <span className="muted">•</span>
-          <span className="muted">React</span>
-          <span className="muted">•</span>
-          <span className="muted">Vite</span>
-          <span className="muted">•</span>
-          <span className="muted">Live mock price engine</span>
-        </div>
-
-        <div className="footerLinks">
-          <a className="footerLink" href="https://crypto-dashboard-three-eta.vercel.app/" target="_blank" rel="noreferrer">
-            Live Demo
-          </a>
-          <span className="muted">•</span>
-          <a className="footerLink" href="https://github.com/dbuckley023/crypto-dashboard" target="_blank" rel="noreferrer">
-            Source Code
-          </a>
-        </div>
-      </footer>
-    </div>
-  );
-}
-
-export default App;
-
 <!doctype html>
 <html lang="en">
   <head>
@@ -50,11 +6,17 @@ export default App;
 
     <title>Crypto Portfolio Dashboard | React + Vite</title>
 
-    <meta name="description" content="Production-style crypto portfolio dashboard with live mock price streaming, zoomable charts, trade history, and performance analytics built in React." />
+    <meta
+      name="description"
+      content="Production-style crypto portfolio dashboard with live mock price streaming, zoomable charts, trade history, and performance analytics built in React."
+    />
 
     <!-- Open Graph -->
     <meta property="og:title" content="Crypto Portfolio Dashboard" />
-    <meta property="og:description" content="Interactive React dashboard with real-time mock crypto prices, advanced charting, and performance tracking." />
+    <meta
+      property="og:description"
+      content="Interactive React dashboard with real-time mock crypto prices, advanced charting, and performance tracking."
+    />
     <meta property="og:type" content="website" />
     <meta property="og:url" content="https://crypto-dashboard-three-eta.vercel.app/" />
 
