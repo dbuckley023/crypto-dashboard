@@ -118,6 +118,53 @@ function pxPerPointForRange(range) {
   return 2.5; // 1Y
 }
 
+const useTweenNumber = (target, duration = 520) => {
+  const [val, setVal] = useState(() => (Number.isFinite(target) ? target : 0));
+  const rafRef = useRef(null);
+  const fromRef = useRef(val);
+
+  useEffect(() => {
+    const to = Number.isFinite(target) ? target : 0;
+    const from = Number.isFinite(fromRef.current) ? fromRef.current : 0;
+    const start = performance.now();
+    cancelAnimationFrame(rafRef.current);
+
+    const tick = (now) => {
+      const t = Math.min(1, (now - start) / duration);
+      const e = 1 - Math.pow(1 - t, 3);
+      const next = from + (to - from) * e;
+      setVal(next);
+      if (t < 1) rafRef.current = requestAnimationFrame(tick);
+      else fromRef.current = to;
+    };
+
+    rafRef.current = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(rafRef.current);
+  }, [target, duration]);
+
+  return val;
+};
+
+const useFlashClass = (value) => {
+  const [cls, setCls] = useState("");
+  const prev = useRef(value);
+
+  useEffect(() => {
+    if (!Number.isFinite(value) || !Number.isFinite(prev.current)) {
+      prev.current = value;
+      return;
+    }
+    if (value === prev.current) return;
+
+    setCls(value > prev.current ? "flashPos" : "flashNeg");
+    const t = setTimeout(() => setCls(""), 360);
+    prev.current = value;
+    return () => clearTimeout(t);
+  }, [value]);
+
+  return cls;
+};
+
 export default function PricePanel({ chartTarget, wallet, walletAccentSymbol, prices, series, range, setRange }) {
   const isWallet = chartTarget.type === "wallet";
 
@@ -151,6 +198,9 @@ export default function PricePanel({ chartTarget, wallet, walletAccentSymbol, pr
     if (!wallet) return 0;
     return wallet.holdings.reduce((sum, h) => sum + h.quantity * (prices?.[h.symbol] ?? 0), 0);
   }, [isWallet, wallet, prices, symbol]);
+
+  const animatedLiveValue = useTweenNumber(liveValue, 520);
+  const liveFlash = useFlashClass(liveValue);
 
   // Zoom controls (Coinbase-ish)
   const [zoomX, setZoomX] = useState(1);
@@ -350,7 +400,7 @@ export default function PricePanel({ chartTarget, wallet, walletAccentSymbol, pr
         </div>
         <div className="right">
           <div className="muted">{isWallet ? "Live wallet value" : "Live price"}</div>
-          <div className="h2">{fmtUsd(liveValue)}</div>
+          <div className={`h2 ${liveFlash}`}>{fmtUsd(animatedLiveValue)}</div>
         </div>
       </div>
 
@@ -366,8 +416,7 @@ export default function PricePanel({ chartTarget, wallet, walletAccentSymbol, pr
               bottom: 0,
               width: 28,
               pointerEvents: "none",
-              background:
-                "linear-gradient(90deg, rgba(8,8,12,.75), rgba(8,8,12,.0))",
+              background: "linear-gradient(90deg, rgba(8,8,12,.75), rgba(8,8,12,.0))",
             }}
           />
         ) : null}
@@ -381,11 +430,11 @@ export default function PricePanel({ chartTarget, wallet, walletAccentSymbol, pr
               bottom: 0,
               width: 28,
               pointerEvents: "none",
-              background:
-                "linear-gradient(270deg, rgba(8,8,12,.75), rgba(8,8,12,.0))",
+              background: "linear-gradient(270deg, rgba(8,8,12,.75), rgba(8,8,12,.0))",
             }}
           />
         ) : null}
+
         <div className="chartLine">
           <div
             ref={scrollRef}
